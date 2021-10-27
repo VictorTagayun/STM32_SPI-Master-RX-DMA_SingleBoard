@@ -1,4 +1,3 @@
-# Date of Commit = 2021-10-27
+# SPI Trans fer using Receiver (only)  Master and Tramsmitter (only) Slave by DMA
 
-This file is added for historical and documentation purposes only.
-It should not be modified and updated whatsoever as it does not serve any other purpose but to keep a record of when was this project created.
+This is prelude to PDM microphone or any PDM analog IC that can be interfaced with SPI.
