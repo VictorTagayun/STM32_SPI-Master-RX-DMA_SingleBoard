@@ -46,14 +46,19 @@
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi1_tx;
+DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi5_rx;
+DMA_HandleTypeDef hdma_spi5_tx;
 
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
-uint8_t send_data[30] = "SPI buffer test";
-uint8_t receive_data[30];
+uint8_t send_data1[30] = "SPI buffer test";
+uint8_t receive_data1[30];
+
+uint8_t send_data5[30] = "SPI buffer test";
+uint8_t receive_data5[30];
 
 /* USER CODE END PV */
 
@@ -109,19 +114,23 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
-  printf("Starting >> NUCLEO-H743ZI_SPI-TX-RX-DMA_SingleBoard \n");
+  printf("Starting >> NUCLEO-H743ZI_SPI-TX-RX-FullDuplex-DMA_SingleBoard \n");
 
   for(uint16_t cntr = 0; cntr < 30; cntr++)
-	  send_data[cntr] = cntr;
+	  send_data1[cntr] = cntr;
 
-  HAL_SPI_Transmit_DMA(&hspi1, send_data, 30);
+  for(uint16_t cntr = 0; cntr < 30; cntr++)
+	  send_data5[cntr] = cntr + 30;
 
-  HAL_SPI_Receive_DMA(&hspi5, receive_data, 30);
+  HAL_SPI_TransmitReceive_DMA(&hspi1, send_data1, receive_data1, 30);
 
+//  HAL_SPI_Receive_DMA(&hspi5, receive_data, 30);
+
+  HAL_SPI_TransmitReceive_DMA(&hspi5, send_data5, receive_data5, 30);
 
   HAL_Delay(50);
 
-  printf("Ending >> NUCLEO-H743ZI_SPI-TX-RX-DMA_SingleBoard \n");
+  printf("Ending >> NUCLEO-H743ZI_SPI-TX-RX-FullDuplex-DMA_SingleBoard \n");
 
   /* USER CODE END 2 */
 
@@ -212,7 +221,7 @@ static void MX_SPI1_Init(void)
   /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_SLAVE;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
@@ -259,7 +268,7 @@ static void MX_SPI5_Init(void)
   /* SPI5 parameter configuration*/
   hspi5.Instance = SPI5;
   hspi5.Init.Mode = SPI_MODE_MASTER;
-  hspi5.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
+  hspi5.Init.Direction = SPI_DIRECTION_2LINES;
   hspi5.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
@@ -351,6 +360,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
@@ -485,6 +500,18 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	UNUSED(hspi);
 	printf("HAL_SPI_TxCpltCallback \n");
+}
+
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	UNUSED(hspi);
+	printf("HAL_SPI_TxRxCpltCallback \n");
+}
+
+void HAL_SPI_TxRxHalfCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	UNUSED(hspi);
+	printf("HAL_SPI_TxRxHalfCpltCallback \n");
 }
 
 /* USER CODE END 4 */
