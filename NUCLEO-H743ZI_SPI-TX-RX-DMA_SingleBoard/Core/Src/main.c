@@ -52,8 +52,8 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
-uint8_t send_data[30] = "SPI buffer test";
-uint8_t receive_data[30];
+uint8_t send_data[100] = "SPI buffer test";
+uint8_t receive_data[100];
 
 /* USER CODE END PV */
 
@@ -111,7 +111,7 @@ int main(void)
 
   printf("Starting >> NUCLEO-H743ZI_SPI-TX-RX-DMA_SingleBoard \n");
 
-  for(uint16_t cntr = 0; cntr < 30; cntr++)
+  for(uint16_t cntr = 0; cntr < 100; cntr++)
 	  send_data[cntr] = cntr;
 
   HAL_SPI_Transmit_DMA(&hspi1, send_data, 30);
@@ -119,7 +119,7 @@ int main(void)
   HAL_SPI_Receive_DMA(&hspi5, receive_data, 30);
 
 
-  HAL_Delay(50);
+  HAL_Delay(200);
 
   printf("Ending >> NUCLEO-H743ZI_SPI-TX-RX-DMA_SingleBoard \n");
 
@@ -497,7 +497,6 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-	printf("Error_Handler \n");
   __disable_irq();
   while (1)
   {

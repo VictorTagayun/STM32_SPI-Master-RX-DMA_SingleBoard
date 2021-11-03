@@ -120,7 +120,7 @@ int main(void)
 	  send_data1[cntr] = cntr;
 
   for(uint16_t cntr = 0; cntr < 30; cntr++)
-	  send_data5[cntr] = cntr + 30;
+	  send_data5[cntr] = cntr + 50;
 
   HAL_SPI_TransmitReceive_DMA(&hspi1, send_data1, receive_data1, 30);
 
