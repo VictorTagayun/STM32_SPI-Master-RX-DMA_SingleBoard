@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "pdm2pcm.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -43,6 +44,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CRC_HandleTypeDef hcrc;
+
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi1_tx;
@@ -56,9 +59,12 @@ UART_HandleTypeDef huart2;
 
 uint8_t send_data2[30] = "SPI buffer test";
 uint8_t receive_data2[1000];
+uint8_t PDM_receive_data[2000];
 
 uint8_t send_data1[30] = "SPI buffer test";
 uint8_t receive_data1[30];
+
+int16_t PCM_outBuffer[250];
 
 /* USER CODE END PV */
 
@@ -69,6 +75,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_DMA_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
 
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
@@ -112,6 +119,8 @@ int main(void)
   MX_DMA_Init();
   MX_SPI2_Init();
   MX_SPI1_Init();
+  MX_CRC_Init();
+  MX_PDM2PCM_Init();
   /* USER CODE BEGIN 2 */
 
   printf("Starting >> STM32F407G-DISC1_SPI-TX-RX-FullDuplex-DMA_SingleBoard \n");
@@ -125,13 +134,18 @@ int main(void)
   // first bit to MSB - 8bit tone500Hz_pdmdata
   for(uint16_t i = 0; i < sizeof(tone500Hz_pdmdata) * 8; i++)
   {
-	  pdmBuffer8_8000bits_1000bytes[i >> 3] = (pdmBuffer8_8000bits_1000bytes[i >> 3] << 1) + tone500Hz_pdmdata[i % sizeof(tone500Hz_pdmdata)];
+	  pdmBuffer8_8000bits_2000bytes[i >> 3] = (pdmBuffer8_8000bits_2000bytes[i >> 3] << 1) + tone500Hz_pdmdata[i % sizeof(tone500Hz_pdmdata)];
   }
 
-  printf("pdmBuffer8_8000bits_1000bytes first bit to MSB\n");
   for (uint16_t Index = 0; Index < 2000; Index++)
   {
-	  printf("%d %d\n",Index, pdmBuffer8_8000bits_1000bytes[Index]);
+	  PDM_receive_data[Index] = 0;
+  }
+
+  printf("pdmBuffer8_8000bits_2000bytes first bit to MSB\n");
+  for (uint16_t Index = 0; Index < 2000; Index++)
+  {
+	  printf("%d %d\n",Index, pdmBuffer8_8000bits_2000bytes[Index]);
   }
 
   // working ok
@@ -139,8 +153,8 @@ int main(void)
 //  HAL_SPI_TransmitReceive_DMA(&hspi2, send_data2, receive_data2, 30);
 
 
-  HAL_SPI_Transmit_DMA(&hspi1, pdmBuffer8_8000bits_1000bytes, 250); // since it is circular, only the 250 first unique bytes are useful
-  HAL_SPI_Receive_DMA(&hspi2, receive_data2, 2000);
+  HAL_SPI_Transmit_DMA(&hspi1, pdmBuffer8_8000bits_2000bytes, 250); // since it is circular, only the 250 first unique bytes are useful
+  HAL_SPI_Receive_DMA(&hspi2, PDM_receive_data, 2000);
 
   HAL_Delay(100);
 
@@ -201,6 +215,33 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  __HAL_CRC_DR_RESET(&hcrc);
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
+
 }
 
 /**
@@ -354,10 +395,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13|GPIO_PIN_15, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PD15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_15;
+  /*Configure GPIO pins : PD13 PD15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -380,7 +421,12 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	UNUSED(hspi);
 
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
+	for(uint16_t cntr = 0; cntr < 1000; cntr++)
+		pdmBuffer8_8000bits_1000bytes[cntr] = pdmBuffer8_8000bits_2000bytes[cntr + 1000];
+
+	GPIOD->BSRR = (1<<15); // Set
+	PDM_Filter(&pdmBuffer8_8000bits_1000bytes[0],&PCM_outBuffer[125], &PDM1_filter_handler);
+	GPIOD->BSRR = (1<<(15+16)); // ReSet
 
 //	printf("HAL_SPI_RxCpltCallback \n");
 }
@@ -389,8 +435,12 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	UNUSED(hspi);
 
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
-//	printf("HAL_SPI_RxHalfCpltCallback \n");
+	for(uint16_t cntr = 0; cntr < 1000; cntr++)
+		pdmBuffer8_8000bits_1000bytes[cntr] = pdmBuffer8_8000bits_2000bytes[cntr];
+
+	GPIOD->BSRR = (1<<15); // Set
+	PDM_Filter(&pdmBuffer8_8000bits_1000bytes[0],&PCM_outBuffer[0], &PDM1_filter_handler);
+	GPIOD->BSRR = (1<<(15+16)); // ReSet
 }
 
 //void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
