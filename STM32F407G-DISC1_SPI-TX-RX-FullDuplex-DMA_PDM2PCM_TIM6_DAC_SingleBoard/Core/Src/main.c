@@ -133,13 +133,7 @@ int main(void)
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
-  printf("Starting >> STM32F407G-DISC1_SPI-TX-RX-FullDuplex-DMA_SingleBoard \n");
-
-  for(uint16_t cntr = 0; cntr < 30; cntr++)
-	  send_data2[cntr] = cntr + 10;
-
-  for(uint16_t cntr = 0; cntr < 30; cntr++)
-	  send_data1[cntr] = cntr;
+  printf("Starting >> STM32F407G-DISC1_SPI-TX-RX-FullDuplex-DMA_PDM2PCM_TIM6_DAC_SingleBoard \n");
 
   // first bit to MSB - 8bit tone500Hz_pdmdata
   for(uint16_t i = 0; i < sizeof(tone500Hz_pdmdata) * 8; i++)
@@ -162,10 +156,15 @@ int main(void)
 //  HAL_SPI_TransmitReceive_DMA(&hspi1, send_data1, receive_data1, 30);
 //  HAL_SPI_TransmitReceive_DMA(&hspi2, send_data2, receive_data2, 30);
 
+  // initialize DAC data to the center of 12bit = 2048
+  for (uint16_t Index = 0; Index < 250; Index++)
+  {
+	  PCM_DAC_outBuffer[Index] = 2048;
+  }
 
   HAL_DAC_Start_DMA(&hdac, 1, (uint32_t *) PCM_DAC_outBuffer, 250, DAC_ALIGN_12B_R);
 
-  HAL_SPI_Transmit_DMA(&hspi1, pdmBuffer8_8000bits_2000bytes, 250); // since it is circular, only the 250 first unique bytes are useful
+  HAL_SPI_Transmit_DMA(&hspi1, pdmBuffer8_8000bits_2000bytes, 250); // 125 = 1000bytes, 250 = 2000 bytes
   HAL_SPI_Receive_DMA(&hspi2, PDM_receive_data, 2000);
 
 
@@ -174,7 +173,7 @@ int main(void)
   HAL_Delay(100);
 
 
-  printf("Ending >> STM32F407G-DISC1_SPI-TX-RX-FullDuplex-DMA_SingleBoard \n");
+  printf("Ending >> STM32F407G-DISC1_SPI-TX-RX-FullDuplex-DMA_PDM2PCM_TIM6_DAC_SingleBoard \n");
 
   /* USER CODE END 2 */
 
@@ -517,8 +516,12 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 
 //	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
 	GPIOD->BSRR = (1<<15); // Set
-//	PDM_Filter(&pdmBuffer8_8000bits_2000bytes[2000],&PCM_outBuffer[125], &PDM1_filter_handler);
-//	GPIOD->BSRR = (1<<(15+16)); // ReSet
+	PDM_Filter(&pdmBuffer8_8000bits_2000bytes[2000],&PCM_outBuffer[125], &PDM1_filter_handler);
+	for(int cntr = 125; cntr < 250; cntr++)
+	{
+		PCM_DAC_outBuffer[cntr] = (PCM_outBuffer[cntr] >> 4) + 2048;
+	}
+	GPIOD->BSRR = (1<<(15+16)); // ReSet
 
 //	printf("HAL_SPI_RxCpltCallback \n");
 }
@@ -528,8 +531,12 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi)
 	UNUSED(hspi);
 
 //	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
-//	GPIOD->BSRR = (1<<15); // Set
-//	PDM_Filter(&pdmBuffer8_8000bits_2000bytes[1000],&PCM_outBuffer[0], &PDM1_filter_handler);
+	GPIOD->BSRR = (1<<15); // Set
+	PDM_Filter(&pdmBuffer8_8000bits_2000bytes[1000],&PCM_outBuffer[0], &PDM1_filter_handler);
+	for(int cntr = 0; cntr < 125; cntr++)
+	{
+		PCM_DAC_outBuffer[cntr] = (PCM_outBuffer[cntr] >> 4) + 2048;
+	}
 	GPIOD->BSRR = (1<<(15+16)); // ReSet
 }
 
