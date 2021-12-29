@@ -16,5 +16,9 @@ Prescaller = (16 - 1) = 16
 Counter Preriod = (128 - 1) = 128  
 Timer Freq = 15.997kHz  
 
-** PDM data
-PDM datastream = 500 data bits  
+** PDM data  
+1 cycle PDM datastream = 2000 data bits  
+2000 data bit / 64 decimation is not whole number   
+Multiply 2000 data bit by 4 cycles to get whole number after decimating 64  
+8000 bits / 64 decimator = 125 samples at 15.997kHz   
+With 8000 bits of data, it is equivalent to 1000 bytes  
