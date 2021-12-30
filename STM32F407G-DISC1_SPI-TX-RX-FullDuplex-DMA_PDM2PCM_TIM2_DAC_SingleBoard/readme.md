@@ -22,3 +22,6 @@ Timer Freq = 15.997kHz
 Multiply 2000 data bit by 4 cycles to get whole number after decimating 64  
 8000 bits / 64 decimator = 125 samples at 15.997kHz   
 With 8000 bits of data, it is equivalent to 1000 bytes  
+
+** DMA setup/strategy
+use 2000 bytes variable where half [0 - 999] will be used for half and [1000 - 1999] will be used afte
