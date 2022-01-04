@@ -24,8 +24,10 @@ Multiply 2000 data bit by 4 cycles to get whole number after decimating 64
 With 8000 bits of data, it is equivalent to 1000 bytes  
 
 ** DMA setup/strategy  
-use 2000 bytes variable where first half [0 - 999] will be used for half of the DMA and [1000 - 1999] will be used for the other half or when DMA is completed  
+PDM variable to use 2000 bytes variable where first half [0 - 999] will be used for half of the DMA and [1000 - 1999] will be used for the other half or when DMA is completed  
 There will be an interrupt on Half and after completed DMA transfer  
+
+
 
 ** DMA Interrupt  
 Half and Complete both will process the 125 PDM data to send to DAC and  
