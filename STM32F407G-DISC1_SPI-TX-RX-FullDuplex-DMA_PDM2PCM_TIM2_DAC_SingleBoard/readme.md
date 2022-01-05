@@ -8,27 +8,32 @@ APB1 Periph Clock = 16.380952 MHz
 Prescaller = 16  
 SPI Freq = 1.0238MHz  
 PDM Decimation Factor = 64  
-PDM to PCM Data output sampling freq = 15.997kHz      
+PDM to PCM Data output sampling freq = 1.0238MHz / 64 = 15.997kHz      
 
-** Timer2/6  
+** Timer2/6 will trigger DAC   
 APB1 Timer Clock = 32.761905 MHz  
 Prescaller = (16 - 1) = 16  
 Counter Preriod = (128 - 1) = 128  
 Timer Freq = 15.997kHz  
 
-** PDM data  
+** PDM data
 1 cycle PDM datastream = 2000 data bits  
 2000 data bit / 64 decimation is not whole number   
 Multiply 2000 data bit by 4 cycles to get whole number after decimating 64  
 8000 bits / 64 decimator = 125 samples at 15.997kHz   
-With 8000 bits of data, it is equivalent to 1000 bytes  
+With 8000 bits of data, it is equivalent to 1000 bytes. 
+
+** PCM data  
+With 8000 bits of PDM data (1000 bytes) will yield 125 int of PCM data  
+
+** DAC data  
+After the PCM data is retrieved, is it converted to 12bit DAC with 1.5V or 2048 as the center  
 
 ** DMA setup/strategy  
-PDM variable to use 2000 bytes variable where first half [0 - 999] will be used for half of the DMA and [1000 - 1999] will be used for the other half or when DMA is completed  
 There will be an interrupt on Half and after completed DMA transfer  
+PDM data variable to use 2x of 1000 bytes variable where first half [0 - 999] will be used for half of the DMA and [1000 - 1999] will be used for the other half or when DMA is completed  
+PCM 
 
 
-
-** DMA Interrupt  
-Half and Complete both will process the 125 PDM data to send to DAC and  
-
+** DMA Interrupt
+Half and Complete both will process the 125 PDM data to send to DAC and
