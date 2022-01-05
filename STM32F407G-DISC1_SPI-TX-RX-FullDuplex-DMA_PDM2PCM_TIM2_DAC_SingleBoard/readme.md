@@ -30,10 +30,10 @@ With 8000 bits of PDM data (1000 bytes) will yield 125 int of PCM data
 After the PCM data is retrieved, is it converted to 12bit DAC with 1.5V or 2048 as the center  
 
 ** DMA setup/strategy  
-There will be an interrupt on Half and after completed DMA transfer  
+There will be an interrupt on Half and after completed DMA transfer of the SPI 2000 bytes   
 PDM data variable to use 2x of 1000 bytes variable where first half [0 - 999] will be used for half of the DMA and [1000 - 1999] will be used for the other half or when DMA is completed  
-PCM 
-
+PCM data variable to use 2x of 125 int16 variable where first half [0 - 124] will be used for half of the DMA and [125 - 250] will be used for the other half or when DMA is completed  
+DAC data variable to use 2x of 125 uint16 variable where first half [0 - 124] will be used for half of the DMA and [125 - 250] will be used for the other half or when DMA is completed  
 
 ** DMA Interrupt
-Half and Complete both will process the 125 PDM data to send to DAC and
+SPI Half and Complete DMA transfer both will process the 125 PDM data to be sent to DAC  
