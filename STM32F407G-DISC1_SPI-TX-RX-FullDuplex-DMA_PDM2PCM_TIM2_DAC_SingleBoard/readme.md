@@ -36,4 +36,8 @@ PCM data variable to use 2x of 125 int16 variable where first half [0 - 124] wil
 DAC data variable to use 2x of 125 uint16 variable where first half [0 - 124] will be used for half of the DMA and [125 - 250] will be used for the other half or when DMA is completed  
 
 ** DMA Interrupt
-SPI Half and Complete DMA transfer both will process the 125 PDM data to be sent to DAC  
+SPI Half and Complete DMA transfer will trigger the interrupt  
+In each (half and full DMA) interrupts, it already received 125 bytes PDM data, then it is to be processed to PCM   
+In each (half and full DMA) interrupts, after the received 125 bytes PDM, PDM filter function is called and it will convert PDM data to 125 int16 PCM data  
+In each (half and full DMA) interrupts, the 125 int16 PCM data is is divided by 16 by shifting 4 to accomodate in 12bit DAC  
+The 12bit bipolar data is shifted to 1/2 of the DAC full swing which by adding 2048, the data are fed to the DAC DMA variable  
