@@ -6,7 +6,7 @@
 
 This is prelude to PDM microphone or any PDM analog IC that can be interfaced with SPI. https://github.com/VictorTagayun/STM32_PDM-to-PCM-Processing
 
-## Procedure
+## Steps / Procedure
 
 ## Results
 
