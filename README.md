@@ -4,7 +4,7 @@
 
 ## Purpose of Project
 
-2 SPI channels will communicate with each other on a single STM32 MCU. One is master and the other is slave. Both SPI will be connected/wired together and will operate via DMA. As the project progresses, the slave SPI will be simulated as a PDM microphone and will have predefined PDM data.
+2 SPI channels will communicate with each other on a single STM32 MCU. One is master receive and the other is slave transmit. Both SPI will be connected/wired together and will operate via DMA. As the project progresses, the slave SPI will be simulated as a PDM microphone and will have predefined PDM data.
 
 This is prelude to PDM microphone or any PDM analog IC that can be interfaced with SPI. https://github.com/VictorTagayun/STM32_PDM-to-PCM-Processing
 
