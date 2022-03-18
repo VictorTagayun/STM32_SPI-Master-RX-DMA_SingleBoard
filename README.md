@@ -1,4 +1,6 @@
-# SPI Transfer using 2 SPI Channels on a Single Board by DMA
+# SPI Master Receive DMA using 2 SPI Channels on a Single Board
+
+SPI Master Receive DMA using 2 SPI Channels on a Single Board by DMA. 1 SPI Master Receive and 1 SPI Slave transmit will be used.
 
 ## Purpose of Project
 
